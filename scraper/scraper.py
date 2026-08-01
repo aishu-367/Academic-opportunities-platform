@@ -69,7 +69,9 @@ def scrape_and_store():
             print(f"Successfully inserted into Supabase: {opportunity_data.get('title')}")
 
         except Exception as e:
+            import traceback
             print(f"Error processing {url}: {e}")
-
+            traceback.print_exc()
+            
 if __name__ == "__main__":
     scrape_and_store()
