@@ -32,39 +32,14 @@ def scrape_and_store():
             soup = BeautifulSoup(response.text, 'html.parser')
             raw_text = soup.get_text(separator=' ', strip=True)
 
-            # Prompt Gemini to match your exact database columns
-            prompt = f"""
-            Analyze the following webpage text from an opportunity page ({url}) and extract structured details.
-            Return ONLY a valid JSON object with these exact keys:
-            - "title": (string, name of the program/opportunity)
-            - "provider": (string, name of the organization or provider like Google)
-            - "description": (string, a clear 2-3 sentence summary)
-            - "deadline": (string in YYYY-MM-DD format or null if not found)
-
-            Webpage text:
-            {raw_text[:8000]}
-            """
-
-            gemini_response = client.models.generate_content(
-                model='gemini-2.0-flash',
-                contents=prompt,
-            )
-            
-            clean_text = gemini_response.text.strip()
-            if clean_text.startswith("```json"):
-                clean_text = clean_text[7:-3].strip()
-            
-            parsed_data = json.loads(clean_text)
-
-            # Map the parsed data directly to your Supabase schema columns
+   # Temporary manual data to bypass Gemini quota limits and test Supabase
             opportunity_data = {
-                "title": parsed_data.get("title"),
-                "provider": parsed_data.get("provider"),
-                "description": parsed_data.get("description"),
+                "title": "Google Summer of Code 2026",
+                "provider": "Google",
+                "description": "A global program focused on bringing student developers into open source software development.",
                 "official_url": url,
-                "deadline": parsed_data.get("deadline") if parsed_data.get("deadline") else None
+                "deadline": None
             }
-
             db_response = supabase.table("opportunities").insert(opportunity_data).execute()
             print(f"Successfully inserted into Supabase: {opportunity_data.get('title')}")
 
