@@ -1,45 +1,67 @@
 import { createClient } from '@supabase/supabase-js';
+import Link from 'next/link';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-export default async function OpportunityDetailPage({ params }: { params: { id: string } }) {
+export default async function OpportunityDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+
   const { data: opportunity, error } = await supabase
     .from('opportunities')
     .select('*')
-    .eq('id', params.id)
+    .eq('id', id)
     .single();
 
   if (error || !opportunity) {
-    return <div className="p-8 text-white">Opportunity not found.</div>;
+    return (
+      <main className="p-10 max-w-2xl mx-auto text-white">
+        <h1 className="text-2xl font-bold mb-4">Opportunity not found</h1>
+        <Link href="/results" className="text-blue-400 underline">
+          &larr; Back to Results
+        </Link>
+      </main>
+    );
   }
 
   return (
-    <div className="p-8 max-w-2xl mx-auto text-white">
+    <main className="p-10 max-w-2xl mx-auto text-white">
+      <Link href="/results" className="text-blue-400 underline mb-6 inline-block">
+        &larr; Back to Results
+      </Link>
       <h1 className="text-3xl font-bold mb-2">{opportunity.title}</h1>
-      <p className="text-gray-400 mb-4 font-semibold">Provider: {opportunity.provider}</p>
+      <p className="text-gray-300 text-lg mb-6">Provider: {opportunity.provider}</p>
       
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold text-gray-300">Description</h3>
-        <p className="mt-2 text-gray-200 leading-relaxed">{opportunity.description}</p>
+      <div className="bg-gray-800 p-6 rounded-lg shadow space-y-4 mb-6">
+        <p><strong>Degree:</strong> {opportunity.degree || 'N/A'}</p>
+        <p><strong>Year:</strong> {opportunity.year || 'N/A'}</p>
+        <p><strong>Interests:</strong> {opportunity.interests || 'N/A'}</p>
+        <p><strong>Opportunity Type:</strong> {opportunity.oppType || 'N/A'}</p>
+        <p><strong>Region:</strong> {opportunity.region || 'N/A'}</p>
+        <p><strong>Funding:</strong> {opportunity.funding || 'N/A'}</p>
       </div>
 
-      {opportunity.deadline && (
-        <p className="mb-4 text-gray-400"><strong>Deadline:</strong> {opportunity.deadline}</p>
-      )}
+      <div className="bg-gray-900 p-6 rounded-lg mb-6">
+        <h2 className="text-xl font-semibold mb-2">Description</h2>
+        <p className="text-gray-300 whitespace-pre-line">{opportunity.description || 'No description available.'}</p>
+      </div>
 
-      {opportunity.official_url && (
-        <a 
-          href={opportunity.official_url} 
-          target="_blank" 
+      {opportunity.url && (
+        <a
+          href={opportunity.url}
+          target="_blank"
           rel="noopener noreferrer"
-          className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+          className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
         >
-          Visit Official Website &rarr;
+          Official Website &rarr;
         </a>
       )}
-    </div>
+    </main>
   );
 }
