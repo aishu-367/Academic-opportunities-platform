@@ -1,11 +1,13 @@
+
 'use client';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
 
 export default function Results() {
   const searchParams = useSearchParams();
-  
+
   // Grab all parameters
   const degree = searchParams.get('degree');
   const year = searchParams.get('year');
@@ -49,14 +51,16 @@ export default function Results() {
     <main className="p-10 max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold mb-6 text-white">Results</h1>
       {opportunities.length === 0 ? (
-        <p className="text-white">No opportunities found matching these criteria.</p>
+        <p className="text-white">No opportunities found matching these criteria</p>
       ) : (
         <ul className="space-y-4">
           {opportunities.map((opp) => (
-            <li key={opp.id} className="border p-4 rounded shadow-sm bg-white">
-              <h2 className="text-xl font-semibold text-black">{opp.title}</h2>
-              <p className="text-gray-800">{opp.provider}</p>
-            </li>
+            <Link key={opp.id} href={`/opportunities/${opp.id}`}>
+              <li className="border p-4 rounded shadow-sm bg-white hover:bg-gray-100 cursor-pointer">
+                <h2 className="text-xl font-semibold text-black">{opp.title}</h2>
+                <p className="text-gray-800">{opp.provider}</p>
+              </li>
+            </Link>
           ))}
         </ul>
       )}
