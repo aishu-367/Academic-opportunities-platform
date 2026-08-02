@@ -65,8 +65,20 @@ def scrape_and_store():
                 "deadline": parsed_data.get("deadline") if parsed_data.get("deadline") else None
             }
 
-            db_response = supabase.table("opportunities").insert(opportunity_data).execute()
-            print(f"Successfully inserted into Supabase: {opportunity_data.get('title')}")
+            # Check if a record with the same title and official_url already exists
+            existing = (
+                supabase.table("opportunities")
+                .select("id")
+                .eq("title", opportunity_data["title"])
+                .eq("official_url", opportunity_data["official_url"])
+                .execute()
+            )
+
+            if existing.data and len(existing.data) > 0:
+                print(f"Skipping duplicate: {opportunity_data['title']}")
+            else:
+                db_response = supabase.table("opportunities").insert(opportunity_data).execute()
+                print(f"Successfully inserted into Supabase: {opportunity_data.get('title')}")
 
         except Exception as e:
             print(f"Error processing {url}: {e}")
