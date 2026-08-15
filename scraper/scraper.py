@@ -5,14 +5,12 @@ from bs4 import BeautifulSoup
 from google import genai
 from supabase import create_client
 
-# Initialize Supabase and Gemini API clients using GitHub Actions secrets
 supabase = create_client(
-    os.environ.get("SUPABASE_URL"), 
+    os.environ.get("SUPABASE_URL"),
     os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
 )
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
-# Define your curated list of individual opportunity URLs
 target_urls = [
     "https://summerofcode.withgoogle.com/programs/2026",
     # Add more individual URLs here whenever you want!
@@ -23,8 +21,8 @@ def scrape_and_store():
         print(f"Scraping opportunity page: {url}")
         try:
             headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
-            response = requests.get(url, headers=headers)
-            
+            response = requests.get(url, headers=headers, timeout=15)
+
             if response.status_code != 200:
                 print(f"Failed to fetch {url} (Status: {response.status_code})")
                 continue
@@ -32,7 +30,6 @@ def scrape_and_store():
             soup = BeautifulSoup(response.text, 'html.parser')
             raw_text = soup.get_text(separator=' ', strip=True)
 
-            # Prompt Gemini to match your exact database columns
             prompt = f"""
             Analyze the following webpage text from an opportunity page ({url}) and extract structured details.
             Return ONLY a valid JSON object with these exact keys:
@@ -46,39 +43,57 @@ def scrape_and_store():
             """
 
             gemini_response = client.models.generate_content(
-                model='gemini-2.0-flash',
+                model='gemini-3.5-flash-lite',
                 contents=prompt,
             )
-            
+
             clean_text = gemini_response.text.strip()
             if clean_text.startswith("```json"):
                 clean_text = clean_text[7:-3].strip()
-            
+            elif clean_text.startswith("```"):
+                clean_text = clean_text[3:-3].strip()
+
             parsed_data = json.loads(clean_text)
 
-            # Map the parsed data directly to your Supabase schema columns
-            opportunity_data = {
+            # This now goes into the STAGING table, never the live one
+            staging_row = {
                 "title": parsed_data.get("title"),
                 "provider": parsed_data.get("provider"),
                 "description": parsed_data.get("description"),
                 "official_url": url,
-                "deadline": parsed_data.get("deadline") if parsed_data.get("deadline") else None
+                "source_url": url,
+                "deadline": parsed_data.get("deadline") if parsed_data.get("deadline") else None,
+                "status": "pending_review"
             }
 
-            # Check if a record with the same title and official_url already exists
-            existing = (
+            if not staging_row["title"]:
+                print(f"Skipping {url}: Gemini couldn't find a title, likely not an opportunity page")
+                continue
+
+            # Check BOTH the live table and the staging table, so we never
+            # review or publish the same opportunity twice
+            already_live = (
                 supabase.table("opportunities")
                 .select("id")
-                .eq("title", opportunity_data["title"])
-                .eq("official_url", opportunity_data["official_url"])
+                .eq("title", staging_row["title"])
+                .eq("official_url", staging_row["official_url"])
+                .execute()
+            )
+            already_staged = (
+                supabase.table("staging_opportunities")
+                .select("id")
+                .eq("title", staging_row["title"])
+                .eq("official_url", staging_row["official_url"])
                 .execute()
             )
 
-            if existing.data and len(existing.data) > 0:
-                print(f"Skipping duplicate: {opportunity_data['title']}")
-            else:
-                db_response = supabase.table("opportunities").insert(opportunity_data).execute()
-                print(f"Successfully inserted into Supabase: {opportunity_data.get('title')}")
+            if (already_live.data and len(already_live.data) > 0) or \
+               (already_staged.data and len(already_staged.data) > 0):
+                print(f"Skipping duplicate: {staging_row['title']}")
+                continue
+
+            supabase.table("staging_opportunities").insert(staging_row).execute()
+            print(f"Added to review queue: {staging_row['title']}")
 
         except Exception as e:
             print(f"Error processing {url}: {e}")

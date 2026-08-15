@@ -1,4 +1,3 @@
-
 'use client';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -27,23 +26,34 @@ export default function Results() {
       if (error) {
         console.error("Error:", error);
       } else if (data) {
-        // Filter logic: Only filter if the user actually selected/typed something
+        // Safe Filter logic: Provide fallback empty strings if fields are null/undefined
         const filtered = data.filter((item: any) => {
+          const itemDegree = item.degree || '';
+          const itemYear = item.year || '';
+          const itemInterests = item.interests || '';
+          const itemOppType = item.oppType || '';
+          const itemRegion = item.region || '';
+          const itemFunding = item.funding || '';
+
           return (
-            (!degree || item.degree?.trim() === degree.trim()) &&
-            (!year || item.year?.trim() === year.trim()) &&
-            (!interests || item.interests?.toLowerCase().includes(interests.toLowerCase())) &&
-            (!oppType || item.oppType?.trim() === oppType.trim()) &&
-            (!region || item.region?.trim() === region.trim()) &&
-            (!funding || item.funding?.trim() === funding.trim())
+            (!degree || itemDegree.trim() === degree.trim()) &&
+            (!year || itemYear.trim() === year.trim()) &&
+            (!interests || itemInterests.toLowerCase().includes(interests.toLowerCase())) &&
+            (!oppType || itemOppType.trim() === oppType.trim()) &&
+            (!region || itemRegion.trim() === region.trim()) &&
+            (!funding || itemFunding.trim() === funding.trim())
           );
         });
+
         setOpportunities(filtered);
       }
       setLoading(false);
     }
+
     fetchData();
-  }, [degree, year, interests, oppType, region, funding]);
+  }, [degree, year, interests, oppType, region, funding]); // Added dependencies
+
+  
 
   if (loading) return <main className="p-10 text-white">Loading...</main>;
 
