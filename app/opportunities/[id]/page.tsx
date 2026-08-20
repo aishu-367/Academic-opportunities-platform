@@ -52,9 +52,9 @@ export default async function OpportunityDetailPage({
         <p className="text-gray-300 whitespace-pre-line">{opportunity.description || 'No description available.'}</p>
       </div>
 
-      {opportunity.url && (
+      {opportunity.official_url && (
         <a
-          href={opportunity.url}
+          href={opportunity.official_url}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"

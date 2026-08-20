@@ -1,16 +1,25 @@
 import os
 import json
+from dotenv import load_dotenv
 import requests
 from bs4 import BeautifulSoup
 from google import genai
 from supabase import create_client
 
-supabase = create_client(
-    os.environ.get("SUPABASE_URL"),
-    os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
-)
-client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+load_dotenv('.env.local', override=True)
 
+print("URL:", os.getenv("NEXT_PUBLIC_SUPABASE_URL"))
+print("SERVICE KEY EXISTS:", bool(os.getenv("SUPABASE_SERVICE_ROLE_KEY")))
+print("GEMINI KEY EXISTS:", bool(os.getenv("GEMINI_API_KEY")))
+
+supabase = create_client(
+    os.getenv("NEXT_PUBLIC_SUPABASE_URL"),
+    os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+)
+
+client = genai.Client(
+    api_key=os.getenv("GEMINI_API_KEY")
+)
 target_urls = [
     "https://summerofcode.withgoogle.com/programs/2026",
     # Add more individual URLs here whenever you want!

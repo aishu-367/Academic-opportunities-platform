@@ -1,16 +1,16 @@
-export const dynamic = 'force-dynamic';
-
-
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 
-// This client uses the PRIVATE key — safe here because this file only ever runs on the server, never in the browser
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 export async function POST(req: NextRequest) {
+  // Initialize supabase INSIDE the function so it doesn't run during build time
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
   const { id, action } = await req.json()
 
   if (!id || !['approve', 'reject'].includes(action)) {
@@ -22,6 +22,9 @@ export async function POST(req: NextRequest) {
     .select('*')
     .eq('id', id)
     .single()
+
+  // ... rest of your code
+
 
   if (fetchError || !stagingRow) {
     return NextResponse.json({ error: 'Item not found' }, { status: 404 })
