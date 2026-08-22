@@ -27,12 +27,15 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true)
 
   const checkPassword = () => {
-    if (passwordInput === process.env.NEXT_PUBLIC_ADMIN_PASSWORD) {
-      setUnlocked(true)
-    } else {
-      alert('Wrong password')
-    }
+  console.log("Typed password:", passwordInput);
+  console.log("Env password:", process.env.NEXT_PUBLIC_ADMIN_PASSWORD_NEW);
+
+  if (passwordInput === process.env.NEXT_PUBLIC_ADMIN_PASSWORD_NEW) {
+    setUnlocked(true);
+  } else {
+    alert('Wrong password');
   }
+};
 
   const fetchOpportunities = async () => {
     setLoading(true)

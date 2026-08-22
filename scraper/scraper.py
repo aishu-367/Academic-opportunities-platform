@@ -22,6 +22,8 @@ client = genai.Client(
 )
 target_urls = [
     "https://summerofcode.withgoogle.com/programs/2026",
+    "https://drdo.gov.in/drdo/en/offerings/vacancies/sag-delhi-invites-applications-paid-internship-engineering-science-ug-pg",
+    "https://www.isro.gov.in/InternshipAndProjects.html"
     # Add more individual URLs here whenever you want!
 ]
 
@@ -52,7 +54,7 @@ def scrape_and_store():
             """
 
             gemini_response = client.models.generate_content(
-                model='gemini-3.5-flash-lite',
+                model='gemini-3.1-flash-lite',
                 contents=prompt,
             )
 
