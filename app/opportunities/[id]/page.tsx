@@ -35,16 +35,24 @@ export default async function OpportunityDetailPage({
       <Link href="/results" className="text-blue-400 underline mb-6 inline-block">
         &larr; Back to Results
       </Link>
+
+      {opportunity.official_url && (
+        <span className="inline-block text-sm text-green-400 mb-2">
+          ✓ Verified — source checked
+        </span>
+      )}
+
       <h1 className="text-3xl font-bold mb-2">{opportunity.title}</h1>
       <p className="text-gray-300 text-lg mb-6">Provider: {opportunity.provider}</p>
-      
-      <div className="bg-gray-800 p-6 rounded-lg shadow space-y-4 mb-6">
+
+      <div className="bg-gray-800 p-6 rounded-lg shadow space-y-2 mb-6">
         <p><strong>Degree:</strong> {opportunity.degree || 'N/A'}</p>
         <p><strong>Year:</strong> {opportunity.year || 'N/A'}</p>
         <p><strong>Interests:</strong> {opportunity.interests || 'N/A'}</p>
-        <p><strong>Opportunity Type:</strong> {opportunity.oppType || 'N/A'}</p>
+        <p><strong>Opportunity Type:</strong> {opportunity.opportunity_type || 'N/A'}</p>
         <p><strong>Region:</strong> {opportunity.region || 'N/A'}</p>
-        <p><strong>Funding:</strong> {opportunity.funding || 'N/A'}</p>
+        <p><strong>Funding:</strong> {opportunity.funding_type || 'N/A'}</p>
+        {opportunity.deadline && <p><strong>Deadline:</strong> {opportunity.deadline}</p>}
       </div>
 
       <div className="bg-gray-900 p-6 rounded-lg mb-6">

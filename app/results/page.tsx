@@ -4,16 +4,22 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
 
+const badgeColors: Record<string, string> = {
+  Internship: 'bg-blue-600',
+  Research: 'bg-purple-600',
+  Scholarship: 'bg-green-600',
+};
+
 export default function Results() {
   const searchParams = useSearchParams();
 
-  // Grab all parameters
-  const degree = searchParams.get('degree');
-  const year = searchParams.get('year');
-  const interests = searchParams.get('interests');
-  const oppType = searchParams.get('oppType');
-  const region = searchParams.get('region');
-  const funding = searchParams.get('funding');
+  const q = searchParams.get('q') || '';
+  const degree = searchParams.get('degree') || '';
+  const year = searchParams.get('year') || '';
+  const interests = searchParams.get('interests') || '';
+  const oppType = searchParams.get('oppType') || '';
+  const region = searchParams.get('region') || '';
+  const funding = searchParams.get('funding') || '';
 
   const [opportunities, setOpportunities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,58 +27,63 @@ export default function Results() {
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
-      const { data, error } = await supabase.from('opportunities').select('*');
+
+      let query = supabase.from('opportunities').select('*');
+
+      if (degree) query = query.eq('degree', degree);
+      if (year) query = query.eq('year', year);
+      if (oppType) query = query.eq('opportunity_type', oppType);
+      if (region) query = query.eq('region', region);
+      if (funding) query = query.eq('funding_type', funding);
+      if (interests) query = query.ilike('interests', `%${interests}%`);
+      if (q) query = query.or(`title.ilike.%${q}%,description.ilike.%${q}%`);
+
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) {
         console.error("Error:", error);
       } else if (data) {
-        // Safe Filter logic: Provide fallback empty strings if fields are null/undefined
-        const filtered = data.filter((item: any) => {
-          const itemDegree = item.degree || '';
-          const itemYear = item.year || '';
-          const itemInterests = item.interests || '';
-                    const itemOppType = item.opportunity_type || '';
-          const itemRegion = item.region || '';
-          const itemFunding = item.funding_type || '';
-
-          return (
-            (!degree || itemDegree.trim() === degree.trim()) &&
-            (!year || itemYear.trim() === year.trim()) &&
-            (!interests || itemInterests.toLowerCase().includes(interests.toLowerCase())) &&
-            (!oppType || itemOppType.trim() === oppType.trim()) &&
-            (!region || itemRegion.trim() === region.trim()) &&
-            (!funding || itemFunding.trim() === funding.trim())
-          );
-        });
-
-        setOpportunities(filtered);
+        setOpportunities(data);
       }
       setLoading(false);
     }
 
     fetchData();
-  }, [degree, year, interests, oppType, region, funding]); // Added dependencies
-
-  
+  }, [q, degree, year, interests, oppType, region, funding]);
 
   if (loading) return <main className="p-10 text-white">Loading...</main>;
 
   return (
-    <main className="p-10 max-w-2xl mx-auto">
+    <main className="p-10 max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold mb-6 text-white">Results</h1>
       {opportunities.length === 0 ? (
-        <p className="text-white">No opportunities found matching these criteria</p>
+        <p className="text-gray-400">No opportunities found matching these criteria</p>
       ) : (
-        <ul className="space-y-4">
+        <div className="grid gap-4 sm:grid-cols-2">
           {opportunities.map((opp) => (
             <Link key={opp.id} href={`/opportunities/${opp.id}`}>
-              <li className="border p-4 rounded shadow-sm bg-white hover:bg-gray-100 cursor-pointer">
-                <h2 className="text-xl font-semibold text-black">{opp.title}</h2>
-                <p className="text-gray-800">{opp.provider}</p>
-              </li>
+              <div className="border border-gray-700 p-5 rounded-lg shadow-sm bg-gray-900 hover:bg-gray-800 transition cursor-pointer h-full flex flex-col">
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  {opp.opportunity_type && (
+                    <span className={`text-xs text-white px-2 py-0.5 rounded-full ${badgeColors[opp.opportunity_type] || 'bg-gray-600'}`}>
+                      {opp.opportunity_type}
+                    </span>
+                  )}
+                  {opp.official_url && (
+                    <span className="text-xs text-green-400 flex items-center gap-1">
+                      ✓ Verified
+                    </span>
+                  )}
+                </div>
+                <h2 className="text-lg font-semibold text-white">{opp.title}</h2>
+                <p className="text-gray-400 text-sm mb-2">{opp.provider}</p>
+                {opp.deadline && (
+                  <p className="text-sm text-amber-400 mt-auto pt-2">Deadline: {opp.deadline}</p>
+                )}
+              </div>
             </Link>
           ))}
-        </ul>
+        </div>
       )}
     </main>
   );
