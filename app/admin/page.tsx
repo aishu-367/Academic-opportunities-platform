@@ -27,9 +27,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true)
 
   const checkPassword = () => {
-  console.log("Typed password:", passwordInput);
-  console.log("Env password:", process.env.NEXT_PUBLIC_ADMIN_PASSWORD_NEW);
-
+  
   if (passwordInput === process.env.NEXT_PUBLIC_ADMIN_PASSWORD_NEW) {
     setUnlocked(true);
   } else {

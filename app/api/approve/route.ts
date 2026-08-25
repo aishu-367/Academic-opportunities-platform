@@ -36,6 +36,7 @@ export async function POST(req: NextRequest) {
   }
 
   // action === 'approve': copy the fields we know both tables share into the real table
+    // action === 'approve': copy the fields we know both tables share into the real table
   const { error: insertError } = await supabase.from('opportunities').insert({
     title: stagingRow.title,
     provider: stagingRow.provider,
@@ -44,6 +45,10 @@ export async function POST(req: NextRequest) {
     deadline: stagingRow.deadline,
     degree: stagingRow.degree,
     year: stagingRow.year,
+    interests: stagingRow.interests,
+    opportunity_type: stagingRow.opportunity_type,
+    region: stagingRow.region,
+    funding_type: stagingRow.funding_type,
     status: 'approved',
   })
 

@@ -31,9 +31,9 @@ export default function Results() {
           const itemDegree = item.degree || '';
           const itemYear = item.year || '';
           const itemInterests = item.interests || '';
-          const itemOppType = item.oppType || '';
+                    const itemOppType = item.opportunity_type || '';
           const itemRegion = item.region || '';
-          const itemFunding = item.funding || '';
+          const itemFunding = item.funding_type || '';
 
           return (
             (!degree || itemDegree.trim() === degree.trim()) &&

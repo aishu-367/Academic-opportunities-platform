@@ -10,7 +10,7 @@ export default function Homepage() {
   const yearOptions = ['2026', '2027', '2028'];
   const oppTypeOptions = ['Internship', 'Research', 'Scholarship'];
   const regionOptions = ['India', 'USA', 'Europe', 'Global'];
-  const fundingOptions = ['Fully Funded', 'Partially Funded', 'Unpaid'];
+   const fundingOptions = ['Fully Funded', 'Partially Funded', 'Unfunded'];
   // ------------------------------
 
   const [degree, setDegree] = useState('');
